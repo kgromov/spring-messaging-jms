@@ -9,6 +9,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.artemis.utils.RandomUtil;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
+import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -23,8 +25,8 @@ import java.util.UUID;
 public class HelloSender {
     private final JmsTemplate jmsTemplate;
     private final ObjectMapper objectMapper;
+    private final MessageConverter messageConverter;
 
-//    @Async("taskExecutor")
     @Scheduled(fixedRate = 2000)
     public void sendMessage() {
 
@@ -38,7 +40,7 @@ public class HelloSender {
         log.info("Send message: {}", message);
     }
 
-//    @Scheduled(fixedRate = 2000)
+    @Scheduled(fixedRate = 2000)
     @SneakyThrows
     public void sendAndReceiveMessage() {
 
@@ -48,21 +50,34 @@ public class HelloSender {
                 .message("Hello")
                 .build();
 
-        Message receivedMsg = jmsTemplate.sendAndReceive(JmsConfig.MY_SEND_RCV_QUEUE, session -> {
+
+        Message receivedMsg = jmsTemplate.sendAndReceive(JmsConfig.MY_SEND_RCV_QUEUE, withJacksonSerialization(message));
+
+        String body = receivedMsg.getBody(String.class);
+//        HelloWorldMessage receivedMessage = objectMapper.readerFor(HelloWorldMessage.class).readValue(body);
+        HelloWorldMessage receivedMessage = (HelloWorldMessage) messageConverter.fromMessage(receivedMsg);
+        log.info("send == received? {}", message.equals(receivedMessage));
+        log.info(body);
+    }
+
+    private MessageCreator withJacksonSerialization(HelloWorldMessage message) {
+        return session -> {
             try {
                 Message helloMessage = session.createTextMessage(objectMapper.writeValueAsString(message));
-                helloMessage.setStringProperty("_type", "guru.springframework.sfgjms.model.HelloWorldMessage");
+                helloMessage.setStringProperty("_type", "com.example.spring.messaging.model.HelloWorldMessage");
                 log.info("Sending Hello");
                 return helloMessage;
             } catch (JsonProcessingException e) {
                 throw new JMSException(e.getMessage());
             }
-        });
+        };
+    }
 
-        String body = receivedMsg.getBody(String.class);
-        HelloWorldMessage receivedMessage = objectMapper.readerFor(HelloWorldMessage.class).readValue(body);
-        log.info("send == received? {}", message.equals(receivedMessage));
-        log.info(body);
+    private MessageCreator withMessageConvertor(HelloWorldMessage message) {
+        return session -> {
+            Message toMessage = messageConverter.toMessage(message, session);
+            return toMessage;
+        };
     }
 
 }

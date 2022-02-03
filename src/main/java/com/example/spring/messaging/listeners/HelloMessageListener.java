@@ -4,6 +4,7 @@ import com.example.spring.messaging.config.JmsConfig;
 import com.example.spring.messaging.model.HelloWorldMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.MessageHeaders;
@@ -30,16 +31,19 @@ public class HelloMessageListener {
 
         log.info("I Got a Message {}", helloWorldMessage);
 
-        // uncomment and view to see retry count in debugger
-       // throw new RuntimeException("foo");
+        // to view to see retry attempts (delivery count) in debugger
+        if (RandomUtils.nextBoolean()) {
+            throw new RuntimeException("foo");
+        }
 
     }
 
-//    @JmsListener(destination = JmsConfig.MY_SEND_RCV_QUEUE)
+    @JmsListener(destination = JmsConfig.MY_SEND_RCV_QUEUE)
     public void listenForHello(@Payload HelloWorldMessage helloWorldMessage,
                                @Headers MessageHeaders headers,
                                Message message) throws JMSException {
 
+        log.info("Received: {}", helloWorldMessage);
         HelloWorldMessage payloadMsg = HelloWorldMessage
                 .builder()
                 .id(UUID.randomUUID())
