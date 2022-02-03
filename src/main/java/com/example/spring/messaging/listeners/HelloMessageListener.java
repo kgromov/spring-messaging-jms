@@ -4,7 +4,6 @@ import com.example.spring.messaging.config.JmsConfig;
 import com.example.spring.messaging.model.HelloWorldMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomUtils;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.MessageHeaders;
@@ -32,9 +31,7 @@ public class HelloMessageListener {
         log.info("I Got a Message {}", helloWorldMessage);
 
         // to view to see retry attempts (delivery count) in debugger
-        if (RandomUtils.nextBoolean()) {
-            throw new RuntimeException("foo");
-        }
+
 
     }
 
