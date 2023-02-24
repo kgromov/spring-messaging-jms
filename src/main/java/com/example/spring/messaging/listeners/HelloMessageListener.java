@@ -30,6 +30,7 @@ public class HelloMessageListener {
                        Message message){
 
         log.info("I Got a Message {}", helloWorldMessage);
+        log.info("Message headers: {}", headers.entrySet());  // jms_destination=ActiveMQQueue[hello-world-queue]
 
         // to view to see retry attempts (delivery count) in debugger
         if (RandomUtils.nextBoolean()) {
