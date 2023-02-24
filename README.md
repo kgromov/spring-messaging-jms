@@ -26,4 +26,15 @@ ActiveMQServer server = ActiveMQServers.newActiveMQServer(new ConfigurationImpl(
 
 server.start();
 ```
-
+## In order to use publisher-subscriber with this oldster the following properties should be set:   
+```yaml
+spring:
+  jms:
+    listener:
+      concurrency: ${number}        # [2; minimum number of concurrent subscribers
+      max-concurrency: ${number}    # [2; maximum number of concurrent subscribers
+    pub-sub-domain: true
+```
+concurrency = 2 set for test purpose to demonstrate that message delivered to all subscribers.    
+Then in message headers destination as a topic can be found - **jms_destination=ActiveMQTopic[hello-world-topic]**    
+instead of queue - e.g. **jms_destination=ActiveMQQueue[hello-world-queue]**
